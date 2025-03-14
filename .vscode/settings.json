@@ -1,0 +1,19 @@
+{
+  "editor.formatOnSave": true,
+  "files.associations": {
+    "iostream": "cpp",
+    "*.tcc": "cpp",
+    "exception": "cpp",
+    "memory_resource": "cpp",
+    "format": "cpp",
+    "fstream": "cpp",
+    "iosfwd": "cpp",
+    "new": "cpp",
+    "ostream": "cpp",
+    "sstream": "cpp",
+    "stop_token": "cpp",
+    "streambuf": "cpp",
+    "*.inc": "cpp",
+    "*.rh": "cpp"
+  }
+}
