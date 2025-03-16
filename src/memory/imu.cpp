@@ -1,5 +1,10 @@
 #include "imu.hpp"
 
+/*
+ * The Internal Memory Unit (IMU) handles all access of internal memory. For the
+ * Gameboy, that is only 0xC000-0xDFFF; 4kB per bank.
+ */
+
 InternalMemoryUnit::InternalMemoryUnit() {
     iwram_b0 = (uint8_t*)malloc(0x1000);
     iwram_b1 = (uint8_t*)malloc(0x1000);

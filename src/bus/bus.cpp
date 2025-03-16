@@ -11,7 +11,7 @@ uint8_t Bus::read(uint8_t addr) {
         // This check happens every cycle, but probably never actually hits
         std::cout << "Invalid address" << std::endl;
     } else if (addr == IE_REGISTER) {
-        /* IE Registers */
+        /* IE Register */
     } else if (addr >= HRAM_START) {
         /* HRAM */
     } else if (addr >= IO_REGISTERS_START) {
