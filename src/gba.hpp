@@ -3,15 +3,16 @@
 
 #include "bus/bus.hpp"
 #include "cpu/cpu_sm83.hpp"
-#include "memory/imu.hpp"
 
 class GBA {
    private:
     /* Bus to Connect Components */
     Bus *bus;
 
-    /* Components */
+    /* Bus Components */
     InternalMemoryUnit *imu;
+    ROMMapper *rom_mapper;
+    PPU *ppu;
     SM83 *cpu_sm83;
 
    public:
