@@ -15,11 +15,11 @@ uint8_t Bus::read(uint16_t addr) {
         // This check happens every cycle, but probably never actually hits
         std::cout << "Invalid address: " << addr << std::endl;
     } else if (addr == IE_REGISTER) { /* IE Register */
-        return imu->read(addr, IE_REGISTER);
+        return imu->read_iereg();
     } else if (addr >= HRAM_START) { /* HRAM */
-        return imu->read(addr, HRAM_START);
+        return imu->read_hram(addr);
     } else if (addr >= IO_REGISTERS_START) { /* I/O Registers */
-        return imu->read(addr, IO_REGISTERS_START);
+        return imu->read_ioreg(addr);
     } else if (addr >= UNUSABLE_START) { /* Unusable */
         std::cout << "Invalid Unusable Region address: " << addr << std::endl;
     } else if (addr >= OAM_START) { /* OAM */
@@ -27,13 +27,15 @@ uint8_t Bus::read(uint16_t addr) {
     } else if (addr >= ECHO_RAM_START) { /* Echo RAM */
         std::cout << "Invalid Echo RAM address: " << addr << std::endl;
     } else if (addr >= IWRAM_START) { /* IWRAM */
-        return Bus::imu->read(addr, IWRAM_START);
+        return Bus::imu->read_iwram(addr);
     } else if (addr >= EWRAM_START) { /* TODO: EWRAM */
-    } else if (addr >= VRAM_START) {  /* VRAM */
+        return;
+    } else if (addr >= VRAM_START) { /* VRAM */
         return ppu->vram_read(addr);
     } else if (addr >= ROM_START) { /* ROM */
         return Bus::rom_mapper->read(addr, 0x0);
     } else if (addr >= 0x0000) { /* TODO: BIOS */
+        return;
     } else {
         std::cout << "Invalid address: " << addr << std::endl;
     }
@@ -51,26 +53,20 @@ void Bus::write(uint16_t addr, uint8_t data) {
         Bus::imu->write_hram(addr, data);
     } else if (addr >= IO_REGISTERS_START) { /* I/O Registers */
         Bus::imu->write_ioreg(addr, data);
-    } else if (addr >= UNUSABLE_START) {
-        /* Unusable */
+    } else if (addr >= UNUSABLE_START) { /* Unusable */
         std::cout << "Unusable Area Writes not allowed: " << addr << std::endl;
-    } else if (addr >= OAM_START) {
-        /* OAM */
-    } else if (addr >= ECHO_RAM_START) {
-        /* Echo RAM */
+    } else if (addr >= OAM_START) { /* OAM */
+        Bus::ppu->oam_write(addr, data);
+    } else if (addr >= ECHO_RAM_START) { /* Echo RAM */
         std::cout << "ECHO RAM Writes not allowed: " << addr << std::endl;
-    } else if (addr >= IWRAM_START) {
-        /* IWRAM */
-        Bus::imu->write(addr, IWRAM_START, data);
-    } else if (addr >= EWRAM_START) {
-        /* EWRAM */
-    } else if (addr >= VRAM_START) {
-        /* VRAM */
-    } else if (addr >= ROM_START) {
-        /* ROM */
+    } else if (addr >= IWRAM_START) { /* IWRAM */
+        Bus::imu->write_iwram(addr, data);
+    } else if (addr >= EWRAM_START) { /* TODO: EWRAM */
+    } else if (addr >= VRAM_START) {  /* VRAM */
+        Bus::ppu->vram_write(addr, data);
+    } else if (addr >= ROM_START) { /* ROM */
         std::cout << "ROM Writes not allowed: " << addr << std::endl;
-    } else if (addr >= 0x0000) {
-        /* BIOS */
+    } else if (addr >= 0x0000) { /* BIOS */
         std::cout << "BIOS Writes not allowed: " << addr << std::endl;
     } else {
         std::cout << "Invalid address: " << addr << std::endl;
