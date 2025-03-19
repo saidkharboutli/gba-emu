@@ -9,24 +9,46 @@ enum Flag { FLAG_Z = 7, FLAG_N = 6, FLAG_H = 5, FLAG_C = 4 };
 
 typedef struct RegisterFile {
     /* 16-bit: AF */
-    uint8_t a;
-    uint8_t f;
+    union {
+        struct {
+            uint8_t A;
+            uint8_t F;
+        };
+        uint16_t AF;
+    };
 
     /* 16-bit: BC */
-    uint8_t b;
-    uint8_t c;
+    union {
+        struct {
+            uint8_t B;
+            uint8_t C;
+        };
+        uint16_t BC;
+    };
 
     /* 16-bit: DE */
-    uint8_t d;
-    uint8_t e;
+    union {
+        struct {
+            uint8_t D;
+            uint8_t E;
+        };
+        uint16_t DE;
+    };
 
     /* 16-bit: HL */
-    uint8_t h;
-    uint8_t l;
+    union {
+        struct {
+            uint8_t H;
+            uint8_t L;
+        };
+        uint16_t HL;
+    };
 
-    uint16_t sp;
+    /* 16-bit Stack Pointer */
+    uint16_t SP;
 
-    uint16_t pc;
+    /* 16-bit Program Counter */
+    uint16_t PC;
 } RegisterFile;
 
 class SM83 {
@@ -35,6 +57,11 @@ class SM83 {
     RegisterFile reg;
     uint8_t instr;
 
+    /* ARITH HELPERS */
+    inline void set_flag(uint8_t flag, bool value) {
+        reg.F = (reg.F & ~((uint8_t)1 << flag)) | ((uint8_t)value << flag);
+    }
+
    public:
     SM83(Bus* bus);
 
@@ -42,11 +69,6 @@ class SM83 {
     uint8_t fetch();
     uint8_t decode(uint8_t instr);
     uint8_t execute(uint8_t decoded);
-
-    /* ARITH HELPERS */
-    inline void set_flag(uint8_t flag, bool value) {
-        reg.f = (reg.f & ~((uint8_t)1 << flag)) | ((uint8_t)value << flag);
-    }
 
     ~SM83();
 };
