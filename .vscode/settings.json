@@ -51,5 +51,10 @@
     "numbers": "cpp",
     "stdexcept": "cpp",
     "typeinfo": "cpp"
-  }
+  },
+  "cSpell.words": [
+    "eram",
+    "EWRAM",
+    "iereg"
+  ]
 }

@@ -28,12 +28,12 @@ uint8_t Bus::read(uint16_t addr) {
         std::cout << "Invalid Echo RAM address: " << addr << std::endl;
     } else if (addr >= IWRAM_START) { /* IWRAM */
         return Bus::imu->read_iwram(addr);
-    } else if (addr >= EWRAM_START) { /* TODO: EWRAM */
-        return;
+    } else if (addr >= ERAM_START) { /* EWRAM */
+        return Bus::rom_mapper->read_eram(addr);
     } else if (addr >= VRAM_START) { /* VRAM */
         return ppu->vram_read(addr);
     } else if (addr >= ROM_START) { /* ROM */
-        return Bus::rom_mapper->read(addr, 0x0);
+        return Bus::rom_mapper->read_rom(addr, 0x0);
     } else if (addr >= 0x0000) { /* TODO: BIOS */
         return;
     } else {
@@ -61,8 +61,9 @@ void Bus::write(uint16_t addr, uint8_t data) {
         std::cout << "ECHO RAM Writes not allowed: " << addr << std::endl;
     } else if (addr >= IWRAM_START) { /* IWRAM */
         Bus::imu->write_iwram(addr, data);
-    } else if (addr >= EWRAM_START) { /* TODO: EWRAM */
-    } else if (addr >= VRAM_START) {  /* VRAM */
+    } else if (addr >= ERAM_START) { /* EWRAM */
+        Bus::rom_mapper->write_eram(addr, data);
+    } else if (addr >= VRAM_START) { /* VRAM */
         Bus::ppu->vram_write(addr, data);
     } else if (addr >= ROM_START) { /* ROM */
         std::cout << "ROM Writes not allowed: " << addr << std::endl;

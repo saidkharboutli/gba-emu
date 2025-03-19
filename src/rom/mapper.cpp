@@ -8,15 +8,23 @@
 ROMMapper::ROMMapper() {
     rom_bank0 = (uint8_t*)malloc(0x4000);
     rom_bankN = (uint8_t*)malloc(0x4000);
+
+    eram = (uint8_t*)malloc(0x2000);
 }
 
-uint8_t ROMMapper::read(uint16_t addr, uint8_t bank) {
+uint8_t ROMMapper::read_rom(uint16_t addr, uint8_t bank) {
     // bank undefined for now
 
     if (addr < 0x4000) {
         return rom_bank0[addr];
     }
     return rom_bankN[addr - 0x4000];
+}
+
+uint8_t ROMMapper::read_eram(uint16_t addr) { return eram[addr - ERAM_START]; }
+
+void ROMMapper::write_eram(uint16_t addr, uint8_t data) {
+    eram[addr - ERAM_START] = data;
 }
 
 ROMMapper::~ROMMapper() {

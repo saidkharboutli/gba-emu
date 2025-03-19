@@ -4,7 +4,7 @@
 enum MemoryMap {
     ROM_START = 0x0100,
     VRAM_START = 0x8000,
-    EWRAM_START = 0xA000,
+    ERAM_START = 0xA000,
     IWRAM_START = 0xC000,
     ECHO_RAM_START = 0xE000,
     OAM_START = 0xFE00,

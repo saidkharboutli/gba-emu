@@ -10,7 +10,7 @@ uint8_t SM83::fetch() {
     return instr;
 }
 
-uint8_t SM83::decode(uint8_t instr) {}
+uint8_t SM83::decode(uint8_t instr) { reg.pc++; }
 
 uint8_t SM83::execute(uint8_t decoded) {}
 
