@@ -30,4 +30,5 @@ void ROMMapper::write_eram(uint16_t addr, uint8_t data) {
 ROMMapper::~ROMMapper() {
     delete rom_bank0;
     delete rom_bankN;
+    delete eram;
 }

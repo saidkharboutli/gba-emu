@@ -1,5 +1,6 @@
 {
   "editor.formatOnSave": true,
+  "editor.tabSize": 4,
   "files.associations": {
     "iostream": "cpp",
     "*.tcc": "cpp",

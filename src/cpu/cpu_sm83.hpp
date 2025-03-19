@@ -5,6 +5,8 @@
 
 #include "bus/bus.hpp"
 
+enum Flag { FLAG_Z = 7, FLAG_N = 6, FLAG_H = 5, FLAG_C = 4 };
+
 typedef struct RegisterFile {
     /* 16-bit: AF */
     uint8_t a;
@@ -31,15 +33,20 @@ class SM83 {
    private:
     Bus* bus;
     RegisterFile reg;
+    uint8_t instr;
 
    public:
     SM83(Bus* bus);
 
+    /* MAIN LOOP */
     uint8_t fetch();
-
     uint8_t decode(uint8_t instr);
-
     uint8_t execute(uint8_t decoded);
+
+    /* ARITH HELPERS */
+    inline void set_flag(uint8_t flag, bool value) {
+        reg.f = (reg.f & ~((uint8_t)1 << flag)) | ((uint8_t)value << flag);
+    }
 
     ~SM83();
 };
