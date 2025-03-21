@@ -49,25 +49,36 @@ typedef struct RegisterFile {
 
     /* 16-bit Program Counter */
     uint16_t PC;
+
 } RegisterFile;
 
 class SM83 {
    private:
     Bus* bus;
-    RegisterFile reg;
-    uint8_t instr;
 
-    /* ARITH HELPERS */
+    RegisterFile reg;
+
+    uint8_t instr;
+    uint8_t data;
+
+    uint8_t instr_cycles_left;
+    uint64_t t_cycle;
+    uint64_t m_cycle;
+
+    /* HELPERS */
     inline void set_flag(uint8_t flag, bool value) {
         reg.F = (reg.F & ~((uint8_t)1 << flag)) | ((uint8_t)value << flag);
     }
+
+    inline void LD_mem(uint16_t addr, uint8_t data) { bus->write(addr, data); }
+    inline void LD_reg(uint16_t* reg, uint8_t data) { *reg = data; }
 
    public:
     SM83(Bus* bus);
 
     /* MAIN LOOP */
     uint8_t fetch();
-    uint8_t decode(uint8_t instr);
+    void decode(uint8_t instr);
     uint8_t execute(uint8_t decoded);
 
     ~SM83();
