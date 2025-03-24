@@ -51,11 +51,9 @@
     "limits": "cpp",
     "numbers": "cpp",
     "stdexcept": "cpp",
-    "typeinfo": "cpp"
-  },
-  "cSpell.words": [
-    "eram",
-    "EWRAM",
-    "iereg"
-  ]
+    "typeinfo": "cpp",
+    "ranges": "cpp",
+    "span": "cpp"
+},
+  "cSpell.words": ["eram", "EWRAM", "iereg"]
 }

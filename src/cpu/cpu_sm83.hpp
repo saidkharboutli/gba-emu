@@ -65,10 +65,20 @@ class SM83 {
     uint64_t t_cycle;
     uint64_t m_cycle;
 
-    /*
-     * LD FUNCTION HELPERS
-     * Read register x0-7 relative to octal groups of instruction opcode table
-     */
+    /*************************************************************************
+     * MISC HELPERS
+     *************************************************************************/
+    inline void set_flag(uint8_t flag, bool value) {
+        reg.F = (reg.F & ~((uint8_t)1 << flag)) | ((uint8_t)value << flag);
+    }
+    inline uint8_t get_flag(uint8_t flag) {
+        return reg.F & ((uint8_t)1 << flag);
+    }
+
+    /*************************************************************************
+     * REGISTER SOURCE AND DESTINATION SELECTORS
+     * Select register based on x0-7 octal groups on opcode table
+     *************************************************************************/
     uint8_t s_regB() { return reg.B; }
     uint8_t s_regC() { return reg.C; }
     uint8_t s_regD() { return reg.D; }
@@ -78,8 +88,8 @@ class SM83 {
     uint8_t s_regA() { return reg.A; }
     uint8_t s_regHL_ind() { return bus->read(reg.HL); }
     uint8_t (SM83::* source_select[8])() = {
-        &SM83::s_regB, &SM83::s_regC, &SM83::s_regD, &SM83::s_regE,
-        &SM83::s_regH, &SM83::s_regL, &SM83::s_regA, &SM83::s_regHL_ind};
+        &SM83::s_regB, &SM83::s_regC, &SM83::s_regD,      &SM83::s_regE,
+        &SM83::s_regH, &SM83::s_regL, &SM83::s_regHL_ind, &SM83::s_regA};
 
     uint8_t d_regB(uint8_t data) { reg.B = data; }
     uint8_t d_regC(uint8_t data) { reg.C = data; }
@@ -90,23 +100,123 @@ class SM83 {
     uint8_t d_regA(uint8_t data) { reg.A = data; }
     uint8_t d_regHL_ind(uint8_t data) { bus->write(reg.HL, data); }
     uint8_t (SM83::* dest_select[8])(uint8_t) = {
-        &SM83::d_regB, &SM83::d_regC, &SM83::d_regD, &SM83::d_regE,
-        &SM83::d_regH, &SM83::d_regL, &SM83::d_regA, &SM83::d_regHL_ind};
+        &SM83::d_regB, &SM83::d_regC, &SM83::d_regD,      &SM83::d_regE,
+        &SM83::d_regH, &SM83::d_regL, &SM83::d_regHL_ind, &SM83::d_regA};
 
-    /* ARITH HELPERS */
-    inline void set_flag(uint8_t flag, bool value) {
-        reg.F = (reg.F & ~((uint8_t)1 << flag)) | ((uint8_t)value << flag);
+    /*************************************************************************
+     * ARITHMETIC FUNCTION SELECTOR
+     * Select arithmetic function based on x0-7 octal groups on opcode table
+     * TODO: Review signage for these functions and flags
+     *************************************************************************/
+    void ADD(uint8_t val) {
+        set_flag(FLAG_C, (reg.A & val) >> 7);
+        reg.A += val;
+    }
+    void ADC(uint8_t val) {
+        if (reg.A + val + get_flag(FLAG_C) > 0xFF) {
+            set_flag(FLAG_C, 1);
+        }
+        reg.A += val + get_flag(FLAG_C);
+    }
+    void SUB(uint8_t val) {
+        if (val > reg.A) {
+            set_flag(FLAG_C, 1);
+        }
+        reg.A -= val;
+        set_flag(FLAG_N, 1);
+    }
+    void SBC(uint8_t val) {
+        if (val + get_flag(FLAG_C) > reg.A) {
+            set_flag(FLAG_C, 1);
+        }
+        reg.A -= (val + get_flag(FLAG_C));
+        set_flag(FLAG_N, 1);
+    }
+    void AND(uint8_t val) { reg.A &= val; }
+    void XOR(uint8_t val) { reg.A ^= val; }
+    void OR(uint8_t val) { reg.A |= val; }
+    void CP(uint8_t val) {
+        if (val > reg.A)
+            set_flag(FLAG_C, 1);
+        else if (val == reg.A)
+            set_flag(FLAG_Z, 1);
+        if ((val & 0x0F) > (reg.A & 0x0F)) set_flag(FLAG_H, 1);
+        set_flag(FLAG_N, 1);
+    }
+    void (SM83::* arith_select[8])(uint8_t) = {
+        &SM83::ADD, &SM83::ADC, &SM83::SUB, &SM83::SBC,
+        &SM83::AND, &SM83::XOR, &SM83::OR,  &SM83::CP};
+
+    /*************************************************************************
+     * LD INSTRUCTIONS
+     *************************************************************************/
+    inline void LD_rr(uint8_t reg_select_d, uint8_t reg_select_s) {
+        (this->*dest_select[reg_select_d])(
+            (this->*source_select[reg_select_s])());
+    }
+    inline void LD_rn8(uint8_t reg_select_d, uint8_t n8) {
+        (this->*dest_select[reg_select_d])(n8);
+    }
+    inline void LD_ind_r16r8(uint16_t* regD, uint8_t* regS) {
+        bus->write(*regD, *regS);
+    }
+    inline void LD_r8_ind_r16(uint8_t* regD, uint16_t* regS) {
+        *regD = bus->read(*regS);
+    }
+    inline void r16n16(uint16_t* regD, uint16_t n16) { *regD = n16; }
+
+    /* Unfortunate Single Use */
+    inline void LD_ind_n16r8(uint16_t addr, uint8_t* regS) {
+        bus->write(addr, *regS);
+    }
+    /* Unfortunate Single Use */
+    inline void LD_r8_ind_n16(uint8_t* regD, uint16_t n16) {
+        *regD = bus->read(n16);
     }
 
-    /* INSTRUCTION GROUPS */
-    inline void LD_r8r8(uint8_t* regD, uint8_t* regS) { *regD = *regS; }
-    inline void LD_r8n8(uint8_t* regD, uint8_t data) { *regD = data; }
-    inline void LD_r16n16(uint16_t* regD, uint16_t data) { *regD = data; }
-    inline void LD_ind_r16r8(uint8_t reg_select, uint8_t* regS) {
-        (this->*dest_select[reg_select])(*regS);
+    /*************************************************************************
+     * INC INSTRUCTIONS
+     *************************************************************************/
+    inline void INC_r(uint8_t reg_select) {
+        // this is terrible i think
+        (this->*dest_select[reg_select])((this->*source_select[reg_select])() +
+                                         1);
     }
-    inline void LD_ind_r16n8(uint8_t reg_select, uint8_t data) {
-        (this->*dest_select[reg_select])(data);
+    inline void INC_r16(uint16_t* reg) { *reg++; }
+
+    /*************************************************************************
+     * DEC INSTRUCTIONS
+     *************************************************************************/
+    inline void DEC_r(uint8_t reg_select) {
+        // this is terrible i think
+        (this->*dest_select[reg_select])((this->*source_select[reg_select])() -
+                                         1);
+    }
+    inline void DEC_r16(uint16_t* reg) { *reg--; }
+
+    /*************************************************************************
+     * ARITH INSTRUCTIONS
+     *************************************************************************/
+    void ARITH_rr(uint8_t op_select, uint8_t reg_select) {
+        (this->*arith_select[op_select])((this->*source_select[reg_select])());
+    }
+    /* For OPCODES 0306 - 0376 */
+    void ARITH_rn8(uint8_t op_select, uint8_t n8) {
+        (this->*arith_select[op_select])(n8);
+    }
+    /* For 00X1*/
+    void ADD_r16r16(uint16_t* regD, uint16_t* regS) { *regD += *regS; }
+
+    /*************************************************************************
+     * JUMP INSTRUCTIONS
+     *************************************************************************/
+    void JR(int8_t signed_offset) { reg.PC += signed_offset + 1; }
+    void JR_cc(uint8_t flag_selector, int8_t signed_offset) {
+        if (get_flag(signed_offset)) reg.PC += signed_offset + 1;
+    }
+    void JP(uint16_t addr) { reg.PC = addr; }
+    void JP_cc(uint8_t flag_selector, uint16_t addr) {
+        if (get_flag(flag_selector)) reg.PC = addr;
     }
 
    public:

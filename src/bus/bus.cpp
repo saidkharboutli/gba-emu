@@ -35,7 +35,7 @@ uint8_t Bus::read(uint16_t addr) {
     } else if (addr >= ROM_START) { /* ROM */
         return Bus::rom_mapper->read_rom(addr, 0x0);
     } else if (addr >= 0x0000) { /* TODO: BIOS */
-        return;
+        return 0;
     } else {
         std::cout << "Invalid address: " << addr << std::endl;
     }
