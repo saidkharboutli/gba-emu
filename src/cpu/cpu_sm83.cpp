@@ -3,15 +3,24 @@
 SM83::SM83(Bus* bus) {
     SM83::reg = {};
     SM83::bus = bus;
+
+    SM83::instr = 0x00;
+    SM83::data = 0x00;
+
+    SM83::instr_cycles_left = 0;
+    SM83::t_cycle = 0x00;
+    SM83::m_cycle = 0x00;
 }
 
 uint8_t SM83::fetch() {
     data = bus->read(reg.PC);
 
     if (!instr_cycles_left) instr = data;
-    return 0;
-
     reg.PC++;
+
+    // if (!(reg.PC % 100)) std::cout << "PC: " << reg.PC << std::endl;
+
+    return 0;
 }
 
 /* DO NOT NEED TO DECODE? */
@@ -31,7 +40,9 @@ uint8_t SM83::execute(uint8_t data) {
         /* NOP */
     } else if (instr == 0001) {
         /* LD BC, n16 */
-        }
+    }
+
+    return 0;
 }
 
 SM83::~SM83() {}

@@ -4,7 +4,7 @@
 #include <cstdint>
 #include <cstdlib>
 
-#include "bus/bus.hpp"
+#include "../constants.hpp"
 
 class ROMMapper {
    private:

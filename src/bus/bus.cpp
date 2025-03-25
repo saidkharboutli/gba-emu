@@ -13,7 +13,7 @@ Bus::Bus(InternalMemoryUnit* imu, ROMMapper* rom_mapper, PPU* ppu) {
 uint8_t Bus::read(uint16_t addr) {
     if (addr > 0xFFFF) {
         // This check happens every cycle, but probably never actually hits
-        std::cout << "Invalid address: " << addr << std::endl;
+        // std::cout << "Invalid address: " << addr << std::endl;
     } else if (addr == IE_REGISTER) { /* IE Register */
         return imu->read_iereg();
     } else if (addr >= HRAM_START) { /* HRAM */
@@ -21,11 +21,12 @@ uint8_t Bus::read(uint16_t addr) {
     } else if (addr >= IO_REGISTERS_START) { /* I/O Registers */
         return imu->read_ioreg(addr);
     } else if (addr >= UNUSABLE_START) { /* Unusable */
-        std::cout << "Invalid Unusable Region address: " << addr << std::endl;
+        // std::cout << "Invalid Unusable Region address: " << addr <<
+        // std::endl;
     } else if (addr >= OAM_START) { /* OAM */
         return ppu->oam_read(addr);
     } else if (addr >= ECHO_RAM_START) { /* Echo RAM */
-        std::cout << "Invalid Echo RAM address: " << addr << std::endl;
+        // std::cout << "Invalid Echo RAM address: " << addr << std::endl;
     } else if (addr >= IWRAM_START) { /* IWRAM */
         return Bus::imu->read_iwram(addr);
     } else if (addr >= ERAM_START) { /* EWRAM */
@@ -37,7 +38,7 @@ uint8_t Bus::read(uint16_t addr) {
     } else if (addr >= 0x0000) { /* TODO: BIOS */
         return 0;
     } else {
-        std::cout << "Invalid address: " << addr << std::endl;
+        // std::cout << "Invalid address: " << addr << std::endl;
     }
 
     return 0;  // 0 is not satisfying to indicate error

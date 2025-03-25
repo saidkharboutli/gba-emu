@@ -1,5 +1,7 @@
 #include "gba.hpp"
 
+#include <chrono>
+
 GBA::GBA() {
     /* BUS COMPONENTS */
     GBA::imu = new InternalMemoryUnit();
@@ -14,8 +16,10 @@ GBA::GBA() {
 }
 
 void GBA::run() {
-    while (true) {
-        cpu_sm83->execute(cpu_sm83->decode(cpu_sm83->fetch()));
+    int i = 0;
+    while (i < TEST_CYCLE_COUNT) {
+        i++;
+        cpu_sm83->execute(cpu_sm83->fetch());
     }
 }
 
@@ -26,4 +30,21 @@ GBA::~GBA() {
     delete ppu;
     delete bus;
     delete cpu_sm83;
+}
+
+int main() {
+    using namespace std;
+    using namespace chrono;
+
+    GBA* gba = new GBA();
+    auto start = high_resolution_clock ::now();
+    gba->run();
+    auto stop = high_resolution_clock ::now();
+
+    auto duration_us = duration_cast<microseconds>(stop - start);
+    cout << "Execution Time: " << duration_us.count() << "us" << endl;
+    cout << "Max Clock: " << (float)TEST_CYCLE_COUNT / (duration_us.count())
+         << "MHz" << endl;
+
+    delete gba;
 }

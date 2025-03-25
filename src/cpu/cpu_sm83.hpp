@@ -1,9 +1,9 @@
-#ifndef CPU_SM_83_HPP
-#define CPU_SM_83_HPP
-
+#ifndef GBA_EMU_TEST_CPU_SM83_HPP
+#define GBA_EMU_TEST_CPU_SM83_HPP
 #include <cstdint>
 
-#include "bus/bus.hpp"
+#include "../bus/bus.hpp"
+#include "../constants.hpp"
 
 enum Flag { FLAG_Z = 7, FLAG_N = 6, FLAG_H = 5, FLAG_C = 4 };
 
@@ -68,7 +68,7 @@ class SM83 {
     /*************************************************************************
      * MISC HELPERS
      *************************************************************************/
-    inline void set_flag(uint8_t flag, bool value) {
+    inline void set_flag(uint8_t flag, uint8_t value) {
         reg.F = (reg.F & ~((uint8_t)1 << flag)) | ((uint8_t)value << flag);
     }
     inline uint8_t get_flag(uint8_t flag) {
@@ -91,15 +91,15 @@ class SM83 {
         &SM83::s_regB, &SM83::s_regC, &SM83::s_regD,      &SM83::s_regE,
         &SM83::s_regH, &SM83::s_regL, &SM83::s_regHL_ind, &SM83::s_regA};
 
-    uint8_t d_regB(uint8_t data) { reg.B = data; }
-    uint8_t d_regC(uint8_t data) { reg.C = data; }
-    uint8_t d_regD(uint8_t data) { reg.D = data; }
-    uint8_t d_regE(uint8_t data) { reg.E = data; }
-    uint8_t d_regH(uint8_t data) { reg.H = data; }
-    uint8_t d_regL(uint8_t data) { reg.L = data; }
-    uint8_t d_regA(uint8_t data) { reg.A = data; }
-    uint8_t d_regHL_ind(uint8_t data) { bus->write(reg.HL, data); }
-    uint8_t (SM83::* dest_select[8])(uint8_t) = {
+    void d_regB(uint8_t n8) { reg.B = n8; }
+    void d_regC(uint8_t n8) { reg.C = n8; }
+    void d_regD(uint8_t n8) { reg.D = n8; }
+    void d_regE(uint8_t n8) { reg.E = n8; }
+    void d_regH(uint8_t n8) { reg.H = n8; }
+    void d_regL(uint8_t n8) { reg.L = n8; }
+    void d_regA(uint8_t n8) { reg.A = n8; }
+    void d_regHL_ind(uint8_t n8) { bus->write(reg.HL, n8); }
+    void (SM83::* dest_select[8])(uint8_t) = {
         &SM83::d_regB, &SM83::d_regC, &SM83::d_regD,      &SM83::d_regE,
         &SM83::d_regH, &SM83::d_regL, &SM83::d_regHL_ind, &SM83::d_regA};
 
@@ -182,7 +182,7 @@ class SM83 {
         (this->*dest_select[reg_select])((this->*source_select[reg_select])() +
                                          1);
     }
-    inline void INC_r16(uint16_t* reg) { *reg++; }
+    inline void INC_r16(uint16_t* regD) { *regD++; }
 
     /*************************************************************************
      * DEC INSTRUCTIONS
@@ -192,7 +192,7 @@ class SM83 {
         (this->*dest_select[reg_select])((this->*source_select[reg_select])() -
                                          1);
     }
-    inline void DEC_r16(uint16_t* reg) { *reg--; }
+    inline void DEC_r16(uint16_t* regD) { *regD--; }
 
     /*************************************************************************
      * ARITH INSTRUCTIONS
@@ -229,5 +229,4 @@ class SM83 {
 
     ~SM83();
 };
-
-#endif
+#endif  // GBA_EMU_TEST_CPU_SM83_HPP
