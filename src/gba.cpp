@@ -42,9 +42,9 @@ int main() {
     auto stop = high_resolution_clock ::now();
 
     auto duration_us = duration_cast<microseconds>(stop - start);
-    cout << "Execution Time: " << duration_us.count() << "us" << endl;
+    cout << "Execution Time: " << duration_us.count() << " us" << endl;
     cout << "Max Clock: " << (float)TEST_CYCLE_COUNT / (duration_us.count())
-         << "MHz" << endl;
+         << " MHz" << endl;
 
     delete gba;
 }
