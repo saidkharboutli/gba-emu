@@ -1,7 +1,7 @@
 #include "cpu_sm83.hpp"
 
-SM83::SM83(Bus* bus) {
-    SM83::reg = {};
+SM83::SM83(Bus* bus) {  // NOLINT(*-pro-type-member-init)
+    SM83::reg = {0};
     SM83::bus = bus;
 
     SM83::instr = 0x00;
@@ -29,7 +29,7 @@ uint8_t SM83::fetch() {
 /*
  * Takes data read from memory and the instr class uint8_t and performs if/else
  * chain comparison to convert opcodes to their respective operations. Octal
- * representation is used for opcodes, due to the Gameboy developers designing
+ * representation is used for opcodes, due to the Game Boy developers designing
  * the opcodes around octal groupings.
  *
  * @param uint8_t data - the data read from memory
@@ -45,4 +45,4 @@ uint8_t SM83::execute(uint8_t data) {
     return 0;
 }
 
-SM83::~SM83() {}
+SM83::~SM83() = default;
