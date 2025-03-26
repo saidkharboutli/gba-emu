@@ -71,7 +71,7 @@ class SM83 {
     inline void set_flag(uint8_t flag, uint8_t value) {
         reg.F = (reg.F & ~((uint8_t)1 << flag)) | ((uint8_t)value << flag);
     }
-    inline uint8_t get_flag(uint8_t flag) {
+    inline uint8_t get_flag(uint8_t flag) const {
         return reg.F & ((uint8_t)1 << flag);
     }
 
@@ -79,15 +79,15 @@ class SM83 {
      * REGISTER SOURCE AND DESTINATION SELECTORS
      * Select register based on x0-7 octal groups on opcode table
      *************************************************************************/
-    uint8_t s_regB() { return reg.B; }
-    uint8_t s_regC() { return reg.C; }
-    uint8_t s_regD() { return reg.D; }
-    uint8_t s_regE() { return reg.E; }
-    uint8_t s_regH() { return reg.H; }
-    uint8_t s_regL() { return reg.L; }
-    uint8_t s_regA() { return reg.A; }
-    uint8_t s_regHL_ind() { return bus->read(reg.HL); }
-    uint8_t (SM83::* source_select[8])() = {
+    uint8_t s_regB() const { return reg.B; }
+    uint8_t s_regC() const { return reg.C; }
+    uint8_t s_regD() const { return reg.D; }
+    uint8_t s_regE() const { return reg.E; }
+    uint8_t s_regH() const { return reg.H; }
+    uint8_t s_regL() const { return reg.L; }
+    uint8_t s_regA() const { return reg.A; }
+    uint8_t s_regHL_ind() const { return bus->read(reg.HL); }
+    uint8_t (SM83::* source_select[8])() const = {
         &SM83::s_regB, &SM83::s_regC, &SM83::s_regD,      &SM83::s_regE,
         &SM83::s_regH, &SM83::s_regL, &SM83::s_regHL_ind, &SM83::s_regA};
 
@@ -178,7 +178,7 @@ class SM83 {
      * INC INSTRUCTIONS
      *************************************************************************/
     inline void INC_r(uint8_t reg_select) {
-        // this is terrible i think
+        // this is terrible I think
         (this->*dest_select[reg_select])((this->*source_select[reg_select])() +
                                          1);
     }
@@ -188,7 +188,7 @@ class SM83 {
      * DEC INSTRUCTIONS
      *************************************************************************/
     inline void DEC_r(uint8_t reg_select) {
-        // this is terrible i think
+        // this is terrible I think
         (this->*dest_select[reg_select])((this->*source_select[reg_select])() -
                                          1);
     }
@@ -212,7 +212,7 @@ class SM83 {
      *************************************************************************/
     void JR(int8_t signed_offset) { reg.PC += signed_offset + 1; }
     void JR_cc(uint8_t flag_selector, int8_t signed_offset) {
-        if (get_flag(signed_offset)) reg.PC += signed_offset + 1;
+        if (get_flag(flag_selector)) reg.PC += signed_offset + 1;
     }
     void JP(uint16_t addr) { reg.PC = addr; }
     void JP_cc(uint8_t flag_selector, uint16_t addr) {
@@ -220,11 +220,11 @@ class SM83 {
     }
 
    public:
-    SM83(Bus* bus);
+    explicit SM83(Bus* bus);
 
     /* MAIN LOOP */
     uint8_t fetch();
-    void decode(uint8_t instr);
+    // void decode(uint8_t instr);
     uint8_t execute(uint8_t decoded);
 
     ~SM83();
