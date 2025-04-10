@@ -1,7 +1,8 @@
 #include "cpu_sm83.hpp"
 
-SM83::SM83(Bus* bus) {  // NOLINT(*-pro-type-member-init)
-    SM83::reg = {0};
+SM83::SM83(Bus *bus) {
+    // NOLINT(*-pro-type-member-init)
+    SM83::reg = {};
     SM83::bus = bus;
 
     SM83::instr = 0x00;
@@ -35,7 +36,7 @@ uint8_t SM83::fetch() {
  * @param uint8_t data - the data read from memory
  * @returns uint8_t error - error code
  */
-uint8_t SM83::execute(uint8_t data) {
+uint8_t SM83::execute(uint8_t decoded) {
     if (instr == 0000) {
         /* NOP */
     } else if (instr == 0001) {
@@ -44,5 +45,3 @@ uint8_t SM83::execute(uint8_t data) {
 
     return 0;
 }
-
-SM83::~SM83() = default;
