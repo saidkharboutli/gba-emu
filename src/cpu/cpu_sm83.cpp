@@ -2,15 +2,15 @@
 
 SM83::SM83(Bus *bus) {
     // NOLINT(*-pro-type-member-init)
-    SM83::reg = {};
+    reg = {};
     SM83::bus = bus;
 
-    SM83::instr = 0x00;
-    SM83::data = 0x00;
+    instr = 0x00;
+    data = 0x00;
 
-    SM83::instr_cycles_left = 0;
-    SM83::t_cycle = 0x00;
-    SM83::m_cycle = 0x00;
+    instr_cycles_left = 0;
+    t_cycle = 0x00;
+    m_cycle = 0x00;
 }
 
 uint8_t SM83::fetch() {

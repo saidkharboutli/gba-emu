@@ -67,7 +67,18 @@ class SM83 {
     uint64_t m_cycle;
 
     /*************************************************************************
-     * MISC HELPERS
+     * MISCELLANEOUS HELPERS
+     *************************************************************************/
+    static uint8_t HIGH(const uint16_t n16) {
+        return (n16 >> 8) & 0xFF;
+    }
+
+    static uint8_t LOW(const uint16_t n16) {
+        return (n16 & 0xFF);
+    }
+
+    /*************************************************************************
+     * FLAG HELPERS
      *************************************************************************/
     uint8_t get_flag(const uint8_t flag) const {
         return reg.F & (static_cast<uint8_t>(1) << flag);
@@ -79,6 +90,14 @@ class SM83 {
 
     void set_ZNHC(const uint8_t Z, const uint8_t N, const uint8_t H, const uint8_t C) {
         reg.F = (reg.F & 0x00) | (Z << FLAG_Z | N << FLAG_N | H << FLAG_H | C << FLAG_C);
+    }
+
+    static uint8_t FLAG_H_add(const uint8_t res, const uint8_t operand) {
+        return (res & 0xFF) < (operand & 0xFF);
+    }
+
+    static uint8_t FLAG_H_sub(const uint8_t res, const uint8_t operand) {
+        return (res & 0xFF) > (operand & 0xFF);
     }
 
     /*************************************************************************
@@ -120,25 +139,27 @@ class SM83 {
      *************************************************************************/
     void ADD(const uint8_t val) {
         const uint8_t res = reg.A + val;
-        set_ZNHC(res == 0, 0, 0, res < reg.A);
+        set_ZNHC(res == 0, 0, FLAG_H_add(res, reg.A), res < reg.A);
         reg.A = res;
     }
 
     void ADC(const uint8_t val) {
-        const uint8_t res = reg.A + val + get_flag(FLAG_C);
-        set_ZNHC(res == 0, 0, 0, res < reg.A + get_flag(FLAG_C));
+        const uint8_t carry = get_flag(FLAG_C);
+        const uint8_t res = reg.A + val + carry;
+        set_ZNHC(res == 0, 0, FLAG_H_add(res, reg.A + carry), res < reg.A + carry);
         reg.A = res;
     }
 
     void SUB(const uint8_t val) {
         const uint8_t res = reg.A - val;
-        set_ZNHC(res == 0, 1, 0, res > reg.A);
+        set_ZNHC(res == 0, 1, FLAG_H_sub(res, reg.A), res > reg.A);
         reg.A = res;
     }
 
     void SBC(const uint8_t val) {
-        const uint8_t res = reg.A - (val + get_flag(FLAG_C));
-        set_ZNHC(res == 0, 1, 0, res > reg.A + get_flag(FLAG_C));
+        const uint8_t carry = get_flag(FLAG_C);
+        const uint8_t res = reg.A - (val + carry);
+        set_ZNHC(res == 0, 1, FLAG_H_sub(res, reg.A + carry), res > reg.A + carry);
         reg.A = res;
     }
 
@@ -162,7 +183,7 @@ class SM83 {
 
     void CP(const uint8_t val) {
         const uint8_t res = reg.A - val;
-        set_ZNHC(res == 0, 1, 0, res > reg.A);
+        set_ZNHC(res == 0, 1, FLAG_H_sub(res, reg.A), res > reg.A);
     }
 
     void (SM83::*arith_select[8])(uint8_t) = {
@@ -174,8 +195,7 @@ class SM83 {
      * LD INSTRUCTIONS
      *************************************************************************/
     void LD_rr(const uint8_t reg_select_d, const uint8_t reg_select_s) {
-        (this->*dest_select[reg_select_d])(
-            (this->*source_select[reg_select_s])());
+        (this->*dest_select[reg_select_d])((this->*source_select[reg_select_s])());
     }
 
     void LD_rn8(const uint8_t reg_select_d, const uint8_t n8) {
@@ -206,9 +226,10 @@ class SM83 {
      * INC INSTRUCTIONS
      *************************************************************************/
     void INC_r(const uint8_t reg_select) {
-        // this is terrible I think
-        (this->*dest_select[reg_select])((this->*source_select[reg_select])() +
-                                         1);
+        const uint8_t source = (this->*source_select[reg_select])();
+        const uint8_t res = source + 1;
+        set_ZNHC(res == 0, 0, FLAG_H_add(res, source), get_flag(FLAG_C));
+        (this->*dest_select[reg_select])(res);
     }
 
     static void INC_r16(uint16_t *regD) { (*regD)++; }
@@ -217,9 +238,10 @@ class SM83 {
      * DEC INSTRUCTIONS
      *************************************************************************/
     void DEC_r(const uint8_t reg_select) {
-        // this is terrible I think
-        (this->*dest_select[reg_select])((this->*source_select[reg_select])() -
-                                         1);
+        const uint8_t source = (this->*source_select[reg_select])();
+        const uint8_t res = source - 1;
+        set_ZNHC(res == 0, 0, FLAG_H_sub(res, source), get_flag(FLAG_C));
+        (this->*dest_select[reg_select])(res);
     }
 
     static void DEC_r16(uint16_t *regD) { (*regD)--; }
@@ -252,6 +274,16 @@ class SM83 {
 
     void JP_cc(const uint8_t flag_selector, const uint16_t addr) {
         if (get_flag(flag_selector)) reg.PC = addr;
+    }
+
+    /*************************************************************************
+     * SUBROUTINE INSTRUCTIONS
+     *************************************************************************/
+    void CALL(const uint16_t n16) {
+        bus->write(reg.SP, LOW(reg.PC + 1));
+        reg.SP++;
+        bus->write(reg.SP, HIGH(reg.PC + 1));
+        reg.PC++;
     }
 
 public:
